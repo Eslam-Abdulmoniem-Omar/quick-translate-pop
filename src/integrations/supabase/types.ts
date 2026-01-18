@@ -14,7 +14,120 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      flashcards: {
+        Row: {
+          context: string | null
+          created_at: string
+          ease_factor: number | null
+          id: string
+          interval_days: number | null
+          last_reviewed_at: string | null
+          next_review_date: string | null
+          original_text: string
+          repetitions: number | null
+          source_language: string
+          target_language: string
+          translated_text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string
+          ease_factor?: number | null
+          id?: string
+          interval_days?: number | null
+          last_reviewed_at?: string | null
+          next_review_date?: string | null
+          original_text: string
+          repetitions?: number | null
+          source_language: string
+          target_language: string
+          translated_text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          context?: string | null
+          created_at?: string
+          ease_factor?: number | null
+          id?: string
+          interval_days?: number | null
+          last_reviewed_at?: string | null
+          next_review_date?: string | null
+          original_text?: string
+          repetitions?: number | null
+          source_language?: string
+          target_language?: string
+          translated_text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          preferred_source_language: string | null
+          preferred_target_language: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          preferred_source_language?: string | null
+          preferred_target_language?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          preferred_source_language?: string | null
+          preferred_target_language?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      translation_history: {
+        Row: {
+          context: string | null
+          created_at: string
+          id: string
+          original_text: string
+          source_language: string
+          target_language: string
+          translated_text: string
+          user_id: string
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string
+          id?: string
+          original_text: string
+          source_language: string
+          target_language: string
+          translated_text: string
+          user_id: string
+        }
+        Update: {
+          context?: string | null
+          created_at?: string
+          id?: string
+          original_text?: string
+          source_language?: string
+          target_language?: string
+          translated_text?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
