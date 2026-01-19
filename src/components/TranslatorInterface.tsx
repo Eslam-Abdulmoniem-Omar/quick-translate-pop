@@ -7,7 +7,7 @@ import { VoiceButton } from '@/components/VoiceButton';
 import { TranslationPopup } from '@/components/TranslationPopup';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useTranslation, TranslationResult } from '@/hooks/useTranslation';
-import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
+import { usePressAndHold } from '@/hooks/usePressAndHold';
 
 export function TranslatorInterface() {
   const [sourceLanguage, setSourceLanguage] = useState('en');
@@ -38,18 +38,13 @@ export function TranslatorInterface() {
     },
   });
 
-  const handleVoiceClick = useCallback(() => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording();
-    }
-  }, [isRecording, startRecording, stopRecording]);
-
-  // Alt+Q shortcut for voice input
-  useKeyboardShortcut(
+  // Alt+Q press-and-hold for voice input
+  usePressAndHold(
     { key: 'q', altKey: true },
-    handleVoiceClick,
+    {
+      onKeyDown: startRecording,
+      onKeyUp: stopRecording,
+    },
     !isProcessing && !isTranslating
   );
 
@@ -96,18 +91,19 @@ export function TranslatorInterface() {
         <VoiceButton
           isRecording={isRecording}
           isProcessing={isProcessing || isTranslating}
-          onClick={handleVoiceClick}
+          onMouseDown={startRecording}
+          onMouseUp={stopRecording}
         />
         
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
             {isRecording 
-              ? 'Listening... Click to stop' 
+              ? 'Listening... Release to stop' 
               : isProcessing 
                 ? 'Processing...' 
                 : isTranslating
                   ? 'Translating...'
-                  : 'Click to speak or press'}
+                  : 'Hold to speak or press'}
           </p>
           {!isRecording && !isProcessing && !isTranslating && (
             <div className="flex items-center justify-center gap-1 mt-1">
