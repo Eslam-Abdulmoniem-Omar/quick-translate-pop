@@ -128,26 +128,39 @@
   animation: pulse-ring 1.5s ease-in-out infinite;
 }
 
-/* Flashcard flip animation */
-.perspective-1000 {
-  perspective: 1000px;
-}
-
-.preserve-3d {
-  transform-style: preserve-3d;
-}
-
-.backface-hidden {
-  backface-visibility: hidden;
-}
-
-.rotate-y-180 {
-  transform: rotateY(180deg);
-}
-
 /* Keyboard shortcut hint styling */
 .kbd {
   @apply inline-flex items-center justify-center px-2 py-1 text-xs font-mono font-medium rounded;
   @apply bg-secondary text-secondary-foreground border border-border;
   box-shadow: 0 1px 2px hsl(var(--border));
+}
+
+/* Slide in animation */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Glow effect for active states */
+.glow-primary {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.4),
+              0 0 40px hsl(var(--primary) / 0.2);
+}
+
+/* Line clamp utility */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
