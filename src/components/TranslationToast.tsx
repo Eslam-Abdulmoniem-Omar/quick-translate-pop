@@ -59,7 +59,7 @@ export function TranslationToast({
   return (
     <div
       className={cn(
-        'fixed bottom-6 right-4 z-50 max-w-xs',
+        'fixed bottom-6 right-4 z-50 max-w-sm',
         'transition-all duration-200 ease-out',
         isVisible 
           ? 'translate-y-0 opacity-100' 
@@ -68,14 +68,7 @@ export function TranslationToast({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="glass-effect rounded-lg border border-border/30 shadow-lg p-3">
-        {/* Translation */}
-        <div className="pr-6">
-          <p className="text-base font-medium text-foreground leading-snug">
-            {result.translation}
-          </p>
-        </div>
-
+      <div className="glass-effect rounded-lg border border-border/30 shadow-lg p-4 space-y-3">
         {/* Close button */}
         <Button
           variant="ghost"
@@ -85,6 +78,39 @@ export function TranslationToast({
         >
           <X className="h-3 w-3" />
         </Button>
+
+        {/* Original phrase */}
+        {result.originalPhrase && (
+          <div className="pr-6">
+            <p className="text-xs text-muted-foreground mb-1">📖 العبارة</p>
+            <p className="text-sm font-medium text-foreground">
+              "{result.originalPhrase}"
+            </p>
+          </div>
+        )}
+
+        {/* Divider */}
+        {result.originalPhrase && (
+          <div className="border-t border-border/30" />
+        )}
+
+        {/* Meaning */}
+        <div dir="rtl" className="text-right">
+          <p className="text-xs text-muted-foreground mb-1">🔤 المعنى</p>
+          <p className="text-base font-medium text-foreground leading-snug">
+            {result.translation}
+          </p>
+        </div>
+
+        {/* Explanation */}
+        {result.explanation && (
+          <div dir="rtl" className="text-right">
+            <p className="text-xs text-muted-foreground mb-1">📝 الشرح</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {result.explanation}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
