@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface AudioWaveformProps {
@@ -7,39 +6,36 @@ interface AudioWaveformProps {
   className?: string;
 }
 
-export function AudioWaveform({ isActive, barCount = 5, className }: AudioWaveformProps) {
-  const [heights, setHeights] = useState<number[]>(Array(barCount).fill(20));
-
-  useEffect(() => {
-    if (!isActive) {
-      setHeights(Array(barCount).fill(20));
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setHeights(prev => 
-        prev.map(() => Math.floor(Math.random() * 60) + 20)
-      );
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [isActive, barCount]);
-
+export function AudioWaveform({ isActive, barCount = 15, className }: AudioWaveformProps) {
   return (
     <div className={cn('flex items-center justify-center gap-1', className)}>
-      {heights.map((height, i) => (
-        <div
-          key={i}
-          className={cn(
-            'w-1 rounded-full transition-all duration-100',
-            isActive ? 'bg-primary' : 'bg-muted-foreground/30'
-          )}
-          style={{ 
-            height: `${height}%`,
-            animationDelay: `${i * 50}ms`
-          }}
-        />
-      ))}
+      {[...Array(barCount)].map((_, i) => {
+        // Create a wave pattern with higher bars in the middle
+        const centerDistance = Math.abs(i - (barCount - 1) / 2);
+        const baseHeight = Math.max(0.2, 1 - centerDistance / (barCount / 2));
+        
+        return (
+          <div
+            key={i}
+            className={cn(
+              'rounded-full transition-all duration-150',
+              'bg-gradient-to-t from-primary via-primary to-primary/70',
+              isActive && 'shadow-sm shadow-primary/50'
+            )}
+            style={{
+              width: barCount > 10 ? '4px' : '6px',
+              height: isActive 
+                ? `${Math.random() * 60 + 20}%` 
+                : `${baseHeight * 30}%`,
+              minHeight: '8px',
+              animation: isActive 
+                ? `waveform ${0.3 + Math.random() * 0.4}s ease-in-out infinite alternate` 
+                : 'none',
+              animationDelay: `${i * 0.05}s`,
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
