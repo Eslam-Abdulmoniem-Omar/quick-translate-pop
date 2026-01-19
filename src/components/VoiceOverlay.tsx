@@ -27,8 +27,7 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
       setCurrentTranslation({ text, context, result });
       setShowToast(true);
     }
-    // Hide overlay after translation completes
-    setTimeout(() => setIsVisible(false), 300);
+    setTimeout(() => setIsVisible(false), 150);
   }, [translate]);
 
   const { isRecording, isProcessing, startRecording, stopRecording } = useVoiceInput({
@@ -37,7 +36,6 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     },
   });
 
-  // Handle Alt+Q keydown/keyup for press-and-hold
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === 'q' && e.altKey && !e.repeat) {
@@ -50,7 +48,6 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      // Stop recording when Q is released OR when Alt is released
       if (e.key.toLowerCase() === 'q' || e.key === 'Alt') {
         if (isRecording) {
           stopRecording();
@@ -58,7 +55,6 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
       }
     };
 
-    // Stop recording if window loses focus
     const handleBlur = () => {
       if (isRecording) {
         stopRecording();
@@ -79,7 +75,7 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
   const statusText = isRecording 
     ? 'Listening...' 
     : isProcessing 
-      ? 'Transcribing...' 
+      ? 'Processing...' 
       : isTranslating 
         ? 'Translating...' 
         : null;
@@ -88,82 +84,57 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
 
   return (
     <>
-      {/* Full-screen backdrop */}
+      {/* Subtle backdrop */}
       <div 
         className={cn(
           'fixed inset-0 z-50 flex items-center justify-center',
-          'bg-background/80 backdrop-blur-xl',
+          'bg-background/60 backdrop-blur-md',
           'animate-fade-in'
         )}
       >
-        {/* Ambient glow rings */}
+        {/* Minimal glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className={cn(
             'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-            'w-[600px] h-[600px] rounded-full',
+            'w-[300px] h-[300px] rounded-full',
             'bg-primary/10 blur-3xl',
             isRecording && 'animate-breathe'
           )} />
-          {isRecording && (
-            <>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-primary/20 animate-ripple" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-primary/20 animate-ripple" style={{ animationDelay: '0.5s' }} />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-primary/20 animate-ripple" style={{ animationDelay: '1s' }} />
-            </>
-          )}
         </div>
 
         {/* Main content */}
-        <div className="relative z-10 flex flex-col items-center gap-8">
+        <div className="relative z-10 flex flex-col items-center gap-4">
           {isRecording ? (
             <>
-              {/* Large waveform */}
-              <div className="relative">
-                <AudioWaveform 
-                  isActive={true} 
-                  barCount={15}
-                  className="h-24 w-80"
-                />
-                {/* Glow under waveform */}
-                <div className="absolute inset-0 -z-10 bg-primary/30 blur-2xl rounded-full" />
-              </div>
-
-              {/* Status text */}
-              <div className="flex flex-col items-center gap-3">
-                <p className="text-2xl font-medium text-foreground animate-pulse">
-                  {statusText}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Release <span className="kbd px-1.5 py-0.5 text-xs">Alt+Q</span> to stop
-                </p>
-              </div>
+              <AudioWaveform 
+                isActive={true} 
+                barCount={12}
+                className="h-16 w-48"
+              />
+              <p className="text-lg font-medium text-foreground/80">
+                {statusText}
+              </p>
             </>
           ) : (
             <>
-              {/* Processing animation */}
-              <div className="relative flex items-center justify-center w-32 h-32">
-                {/* Orbital dots */}
+              {/* Processing spinner */}
+              <div className="relative flex items-center justify-center w-20 h-20">
                 <div className="absolute inset-0 animate-spin-slow">
                   {[...Array(3)].map((_, i) => (
                     <div
                       key={i}
-                      className="absolute w-3 h-3 bg-primary rounded-full"
+                      className="absolute w-2 h-2 bg-primary rounded-full"
                       style={{
                         top: '50%',
                         left: '50%',
-                        transform: `rotate(${i * 120}deg) translateY(-40px) translateX(-50%)`,
+                        transform: `rotate(${i * 120}deg) translateY(-28px) translateX(-50%)`,
                       }}
                     />
                   ))}
                 </div>
-                {/* Center pulse */}
-                <div className="w-16 h-16 rounded-full bg-primary/20 animate-pulse flex items-center justify-center">
-                  <div className="w-8 h-8 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '0.2s' }} />
-                </div>
+                <div className="w-8 h-8 rounded-full bg-primary/20 animate-pulse" />
               </div>
-
-              {/* Status text */}
-              <p className="text-2xl font-medium text-foreground animate-pulse">
+              <p className="text-lg font-medium text-foreground/80">
                 {statusText}
               </p>
             </>
@@ -180,7 +151,6 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
           sourceLanguage={sourceLanguage}
           targetLanguage={targetLanguage}
           onClose={() => setShowToast(false)}
-          autoDismiss={0}
         />
       )}
     </>

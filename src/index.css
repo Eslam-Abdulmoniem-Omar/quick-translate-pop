@@ -104,7 +104,7 @@
 
 /* Glass effect for popups */
 .glass-effect {
-  @apply bg-background/95 backdrop-blur-xl;
+  @apply bg-background/90 backdrop-blur-lg;
 }
 
 /* Waveform animation */
@@ -146,7 +146,7 @@
 }
 
 .animate-breathe {
-  animation: breathe 3s ease-in-out infinite;
+  animation: breathe 2s ease-in-out infinite;
 }
 
 /* Ripple animation */
@@ -176,7 +176,7 @@
 }
 
 .animate-spin-slow {
-  animation: spin-slow 2s linear infinite;
+  animation: spin-slow 1.5s linear infinite;
 }
 
 /* Keyboard shortcut styling */
@@ -216,7 +216,7 @@
 }
 
 .animate-fade-in {
-  animation: fade-in 0.2s ease-out;
+  animation: fade-in 0.15s ease-out;
 }
 
 /* Line clamp utility */
