@@ -168,10 +168,15 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
         throw new Error(data.error);
       }
 
-      if (data.text && data.text.trim()) {
-        onTranscription(data.text);
+      const text = data.text?.trim() || '';
+      
+      // Check if it's actual speech (not just audio events like [beeping], [clicking], etc.)
+      const isAudioEventOnly = /^\[.*\]$/.test(text) || !text;
+      
+      if (text && !isAudioEventOnly) {
+        onTranscription(text);
       } else {
-        toast.info("We couldn't hear you", { duration: 2000 });
+        toast.info("We couldn't hear you", { duration: 1500 });
       }
     } catch (error) {
       console.error('Transcription error:', error);
