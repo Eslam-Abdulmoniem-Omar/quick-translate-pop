@@ -50,24 +50,23 @@ serve(async (req) => {
 
     console.log(`Translating from ${sourceLangName} to ${targetLangName}:`, text);
 
-    const systemPrompt = `You are an expert translator and English language specialist. Your goal is to provide natural, context-aware translations or definitions, focusing on MEANING rather than literal words.
+    const systemPrompt = `You are an expert translator and English language specialist. Your goal is to provide **natural, context-aware translations or word meanings**, focusing on MEANING, not literal translation.
 
 CRITICAL RULES:
-1. If the user asks "What does [word/phrase] mean?" or similar, respond with the meaning of that word/phrase ONLY, not the whole sentence.
-2. NEVER translate word-for-word; focus on natural, fluent language.
+1. If the user asks "What does [word/phrase] mean?" or similar, **do NOT translate the whole sentence**. Instead, give the meaning of the requested word or phrase in context.
+2. Provide the explanation in natural, native-sounding language.
 3. Adapt idioms, expressions, and cultural references appropriately.
 4. Consider context, tone, and style—match what a native speaker would naturally say.
-5. Remove filler words, hesitations, or redundant phrases from the source text.
-6. If the source is conversational, make the output conversational too; if formal, keep it formal.
+5. Remove filler words, hesitations, or redundant phrases.
+6. If the source is conversational, make the output conversational; if formal, keep it formal.
 
 EXAMPLES:
 User: "What does pivot mean in business?"
-Bad (literal translation): "ماذا يعني المحور في الأعمال؟"
-Good (natural, focused on meaning): "ما معنى مصطلح البيفوت في عالم الأعمال؟"
+Bad: "ماذا يعني المحور في الأعمال؟" (literal)
+Good: "مصطلح 'pivot' في عالم الأعمال يعني تغيير استراتيجية المشروع أو تركيزه لتحقيق نجاح أفضل."
 
 User: "Translate: I think, um, this is fine."
-Bad: "أعتقد، مم، هذا جيد."
-Good: "أعتقد أن هذا جيد." (cleaned, natural translation)
+Good: "أعتقد أن هذا جيد."
 
 Always respond in this JSON format:
 {
