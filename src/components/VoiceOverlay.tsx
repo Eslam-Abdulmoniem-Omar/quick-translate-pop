@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { AudioWaveform } from '@/components/AudioWaveform';
 import { TranslationToast } from '@/components/TranslationToast';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
@@ -19,11 +19,6 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     result: TranslationResult;
   } | null>(null);
 
-  // Track if key is currently held down
-  const isKeyHeldRef = useRef(false);
-  // Track recording state via ref for immediate access in event handlers
-  const isRecordingRef = useRef(false);
-
   const { translate, isTranslating } = useTranslation({ sourceLanguage, targetLanguage });
 
   const handleTranslation = useCallback(async (text: string, context?: string) => {
@@ -42,60 +37,33 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     },
   });
 
-  // Keep ref in sync with state
-  useEffect(() => {
-    isRecordingRef.current = isRecording;
-  }, [isRecording]);
-
   // Handle Alt+Q keydown/keyup for press-and-hold
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only respond to Alt+Q, ignore repeats
       if (e.key.toLowerCase() === 'q' && e.altKey && !e.repeat) {
         e.preventDefault();
-        
-        // Prevent starting if already in progress
-        if (isKeyHeldRef.current) return;
-        
-        isKeyHeldRef.current = true;
-        setIsVisible(true);
-        startRecording();
+        if (!isRecording && !isProcessing && !isTranslating) {
+          setIsVisible(true);
+          startRecording();
+        }
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      // Stop on Q release (regardless of Alt state)
       if (e.key.toLowerCase() === 'q') {
-        if (isKeyHeldRef.current) {
-          isKeyHeldRef.current = false;
+        if (isRecording) {
           stopRecording();
         }
-      }
-      // Also stop if Alt is released while Q might still be held
-      if (e.key === 'Alt' && isKeyHeldRef.current) {
-        isKeyHeldRef.current = false;
-        stopRecording();
-      }
-    };
-
-    // Handle window blur (user switches apps while holding keys)
-    const handleBlur = () => {
-      if (isKeyHeldRef.current) {
-        isKeyHeldRef.current = false;
-        stopRecording();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
-    window.addEventListener('blur', handleBlur);
-    
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      window.removeEventListener('blur', handleBlur);
     };
-  }, [startRecording, stopRecording]);
+  }, [isRecording, isProcessing, isTranslating, startRecording, stopRecording]);
 
   const isActive = isRecording || isProcessing || isTranslating;
   const statusText = isRecording 
