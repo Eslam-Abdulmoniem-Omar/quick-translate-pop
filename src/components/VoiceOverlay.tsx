@@ -28,7 +28,7 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     }
   }, [translate]);
 
-  const { isRecording, isProcessing, startRecording, stopRecording } = useVoiceInput({
+  const { isRecording, isProcessing, isInitializing, startRecording, stopRecording } = useVoiceInput({
     onTranscription: (text) => {
       handleTranslation(text);
     },
@@ -38,7 +38,7 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === 'q' && e.altKey && !e.repeat) {
         e.preventDefault();
-        if (!isRecording && !isProcessing && !isTranslating) {
+        if (!isRecording && !isProcessing && !isTranslating && !isInitializing) {
           startRecording();
         }
       }
@@ -66,16 +66,18 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [isRecording, isProcessing, isTranslating, startRecording, stopRecording]);
+  }, [isRecording, isProcessing, isTranslating, isInitializing, startRecording, stopRecording]);
 
-  const isActive = isRecording || isProcessing || isTranslating;
-  const statusText = isRecording 
-    ? 'Listening...' 
-    : isProcessing 
-      ? 'Processing...' 
-      : isTranslating 
-        ? 'Translating...' 
-        : null;
+  const isActive = isRecording || isProcessing || isTranslating || isInitializing;
+  const statusText = isInitializing
+    ? 'Starting...'
+    : isRecording 
+      ? 'Listening...' 
+      : isProcessing 
+        ? 'Processing...' 
+        : isTranslating 
+          ? 'Translating...' 
+          : null;
 
   return (
     <>
@@ -83,7 +85,7 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
       <div 
         className={cn(
           'fixed bottom-6 left-1/2 -translate-x-1/2 z-50',
-          'transition-all duration-200 ease-out',
+          'transition-all duration-100 ease-out',
           isActive 
             ? 'translate-y-0 opacity-100' 
             : 'translate-y-4 opacity-0 pointer-events-none'
