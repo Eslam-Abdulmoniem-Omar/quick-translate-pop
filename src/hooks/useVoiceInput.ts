@@ -10,6 +10,7 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
   const [isProcessing, setIsProcessing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const recordingStartTimeRef = useRef<number>(0);
 
   const startRecording = useCallback(async () => {
     try {
@@ -26,6 +27,7 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
       });
 
       chunksRef.current = [];
+      recordingStartTimeRef.current = Date.now();
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -36,10 +38,14 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach(track => track.stop());
         
+        const recordingDuration = Date.now() - recordingStartTimeRef.current;
         const audioBlob = new Blob(chunksRef.current, { type: mediaRecorder.mimeType });
         
-        if (audioBlob.size < 1000) {
-          toast.error('Recording too short. Please try again.');
+        console.log('Recording duration:', recordingDuration, 'ms, Blob size:', audioBlob.size);
+        
+        // Require at least 500ms of recording for meaningful audio
+        if (recordingDuration < 500 || audioBlob.size < 2000) {
+          toast.error('Recording too short. Please hold longer to record.');
           setIsProcessing(false);
           return;
         }
@@ -48,7 +54,8 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
       };
 
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
+      // Use timeslice to collect data every 100ms for more reliable chunk collection
+      mediaRecorder.start(100);
       setIsRecording(true);
     } catch (error) {
       console.error('Error starting recording:', error);
