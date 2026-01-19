@@ -8,9 +8,6 @@ import { TranslationPopup } from '@/components/TranslationPopup';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useTranslation, TranslationResult } from '@/hooks/useTranslation';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
-import { useFlashcards } from '@/hooks/useFlashcards';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
 
 export function TranslatorInterface() {
   const [sourceLanguage, setSourceLanguage] = useState('en');
@@ -24,8 +21,6 @@ export function TranslatorInterface() {
     result: TranslationResult;
   } | null>(null);
 
-  const { user } = useAuth();
-  const { addFlashcard } = useFlashcards();
   const { translate, isTranslating } = useTranslation({ sourceLanguage, targetLanguage });
 
   const handleTranslation = useCallback(async (text: string, context?: string) => {
@@ -68,23 +63,6 @@ export function TranslatorInterface() {
     if (textInput.trim()) {
       handleTranslation(textInput, contextInput);
     }
-  };
-
-  const handleSaveFlashcard = () => {
-    if (!currentTranslation || !user) {
-      toast.error('Please sign in to save flashcards');
-      return;
-    }
-
-    addFlashcard.mutate({
-      original_text: currentTranslation.text,
-      translated_text: currentTranslation.result.translation,
-      context: currentTranslation.context,
-      source_language: sourceLanguage,
-      target_language: targetLanguage,
-    });
-
-    setShowPopup(false);
   };
 
   return (
@@ -177,8 +155,6 @@ export function TranslatorInterface() {
           sourceLanguage={sourceLanguage}
           targetLanguage={targetLanguage}
           onClose={() => setShowPopup(false)}
-          onSaveFlashcard={handleSaveFlashcard}
-          isAuthenticated={!!user}
         />
       )}
     </div>
