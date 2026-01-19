@@ -14,6 +14,7 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [isTooShort, setIsTooShort] = useState(false);
+  const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const recordingStartTimeRef = useRef<number>(0);
@@ -109,6 +110,7 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
       // Use smaller timeslice for faster chunk availability
       mediaRecorder.start(50);
       recordingStartTimeRef.current = Date.now();
+      setActiveStream(stream);
       setIsInitializing(false);
       setIsRecording(true);
     } catch (error) {
@@ -134,6 +136,7 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
       
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      setActiveStream(null);
       setIsProcessing(true);
     }
   }, [isRecording]);
@@ -183,6 +186,7 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
     isProcessing,
     isInitializing,
     isTooShort,
+    activeStream,
     startRecording,
     stopRecording,
   };
