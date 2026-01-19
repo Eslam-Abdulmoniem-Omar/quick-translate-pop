@@ -3,7 +3,8 @@ import { toast } from 'sonner';
 
 export interface TranslationResult {
   translation: string;
-  pronunciation: string;
+  explanation?: string;
+  originalPhrase?: string;
   examples: string[];
   notes?: string;
 }
@@ -67,7 +68,8 @@ export function useTranslation({ sourceLanguage, targetLanguage }: UseTranslatio
 
       const translationResult: TranslationResult = {
         translation: data.translation || '',
-        pronunciation: data.pronunciation || '',
+        explanation: data.explanation || '',
+        originalPhrase: data.originalPhrase || '',
         examples: data.examples || [],
         notes: data.notes,
       };
