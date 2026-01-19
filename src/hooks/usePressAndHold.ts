@@ -55,13 +55,15 @@ export function usePressAndHold(
   );
 
   useEffect(() => {
-    if (enabled) {
-      window.addEventListener('keydown', handleKeyDown);
-      window.addEventListener('keyup', handleKeyUp);
-      return () => {
-        window.removeEventListener('keydown', handleKeyDown);
-        window.removeEventListener('keyup', handleKeyUp);
-      };
-    }
+    if (!enabled) return;
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [handleKeyDown, handleKeyUp, enabled]);
+
+  return { isPressed: isPressedRef.current };
 }

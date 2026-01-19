@@ -23,11 +23,29 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY is not configured');
     }
 
-    console.log('Transcribing audio file:', audioFile.name, 'Size:', audioFile.size);
+    console.log('Transcribing audio file:', audioFile.name, 'Size:', audioFile.size, 'Type:', audioFile.type);
+
+    // Get the audio data as array buffer
+    const audioBuffer = await audioFile.arrayBuffer();
+    
+    // Determine file extension from mime type
+    let extension = 'webm';
+    if (audioFile.type.includes('mp4')) {
+      extension = 'mp4';
+    } else if (audioFile.type.includes('ogg')) {
+      extension = 'ogg';
+    } else if (audioFile.type.includes('wav')) {
+      extension = 'wav';
+    }
+    
+    // Create a new File with explicit type for OpenAI
+    const newFile = new File([audioBuffer], `audio.${extension}`, { 
+      type: audioFile.type || 'audio/webm'
+    });
 
     // Create form data for OpenAI Whisper API
     const apiFormData = new FormData();
-    apiFormData.append('file', audioFile);
+    apiFormData.append('file', newFile);
     apiFormData.append('model', 'whisper-1');
 
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
