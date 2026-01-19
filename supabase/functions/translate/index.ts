@@ -50,36 +50,19 @@ serve(async (req) => {
 
     console.log(`Translating from ${sourceLangName} to ${targetLangName}:`, text);
 
-    const systemPrompt = `You are an expert translator and English language specialist. Your goal is to provide natural, context-aware translations or definitions, focusing on MEANING rather than literal words.
-
-CRITICAL RULES:
-1. If the user asks "What does [word/phrase] mean?" or similar, respond with the meaning of that word/phrase ONLY, not the whole sentence.
-2. NEVER translate word-for-word; focus on natural, fluent language.
-3. Adapt idioms, expressions, and cultural references appropriately.
-4. Consider context, tone, and style—match what a native speaker would naturally say.
-5. Remove filler words, hesitations, or redundant phrases from the source text.
-6. If the source is conversational, make the output conversational too; if formal, keep it formal.
-
-EXAMPLES:
-User: "What does pivot mean in business?"
-Bad (literal translation): "ماذا يعني المحور في الأعمال؟"
-Good (natural, focused on meaning): "ما معنى مصطلح البيفوت في عالم الأعمال؟"
-
-User: "Translate: I think, um, this is fine."
-Bad: "أعتقد، مم، هذا جيد."
-Good: "أعتقد أن هذا جيد." (cleaned, natural translation)
-
-Always respond in this JSON format:
+    // Improved system prompt - أقصر وأكثر وضوحاً
+    const systemPrompt = `Expert translator. Output JSON only:
 {
-  "translation": "the natural, native-sounding translation or meaning of the requested word/phrase",
-  "pronunciation": "a phonetic guide readable by a speaker of the source language",
-  "examples": ["example sentence 1", "example sentence 2"],
-  "notes": "brief cultural or usage notes if relevant"
+  "translation": "accurate translation preserving tone",
+  "pronunciation": "simple phonetic guide",
+  "examples": ["2 natural usage examples"],
+  "notes": "brief cultural/usage tips if needed"
 }`;
 
+    // Improved user prompt - مباشر وواضح
     const userPrompt = context
-      ? `Translate the following ${sourceLangName} text to ${targetLangName} in the context of "${context}":\n\n"${text}"`
-      : `Translate the following ${sourceLangName} text to ${targetLangName}:\n\n"${text}"`;
+      ? `${sourceLangName}→${targetLangName} (context: ${context}):\n"${text}"`
+      : `${sourceLangName}→${targetLangName}:\n"${text}"`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -94,6 +77,8 @@ Always respond in this JSON format:
           { role: "user", content: userPrompt },
         ],
         response_format: { type: "json_object" },
+        temperature: 0.3, // أقل للترجمة الدقيقة
+        max_tokens: 500, // حد أقصى معقول للسرعة
       }),
     });
 
