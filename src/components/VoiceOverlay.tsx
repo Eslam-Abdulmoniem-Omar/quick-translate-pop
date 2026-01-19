@@ -28,7 +28,7 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     }
   }, [translate]);
 
-  const { isRecording, isProcessing, isInitializing, startRecording, stopRecording } = useVoiceInput({
+  const { isRecording, isProcessing, isInitializing, isTooShort, startRecording, stopRecording } = useVoiceInput({
     onTranscription: (text) => {
       handleTranslation(text);
     },
@@ -68,16 +68,18 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     };
   }, [isRecording, isProcessing, isTranslating, isInitializing, startRecording, stopRecording]);
 
-  const isActive = isRecording || isProcessing || isTranslating || isInitializing;
-  const statusText = isInitializing
-    ? 'Starting...'
-    : isRecording 
-      ? 'Listening...' 
-      : isProcessing 
-        ? 'Processing...' 
-        : isTranslating 
-          ? 'Translating...' 
-          : null;
+  const isActive = isRecording || isProcessing || isTranslating || isInitializing || isTooShort;
+  const statusText = isTooShort
+    ? 'Too short'
+    : isInitializing
+      ? 'Starting...'
+      : isRecording 
+        ? 'Listening...' 
+        : isProcessing 
+          ? 'Processing...' 
+          : isTranslating 
+            ? 'Translating...' 
+            : null;
 
   return (
     <>
