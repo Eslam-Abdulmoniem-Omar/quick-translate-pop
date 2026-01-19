@@ -13,9 +13,12 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [isTooShort, setIsTooShort] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const recordingStartTimeRef = useRef<number>(0);
 
+  const MIN_RECORDING_DURATION_MS = 500;
   // Warm up microphone on mount
   useEffect(() => {
     warmUpMicrophone();
@@ -93,8 +96,8 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
         
         const audioBlob = new Blob(chunksRef.current, { type: mimeType });
         
-        if (audioBlob.size < 1000) {
-          toast.error('Recording too short. Please try again.');
+        if (audioBlob.size < 5000) {
+          toast.error('Recording too short. Hold Alt+Q longer.');
           setIsProcessing(false);
           return;
         }
@@ -103,8 +106,9 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
       };
 
       mediaRecorderRef.current = mediaRecorder;
-      // Use timeslice for faster chunk availability
-      mediaRecorder.start(100);
+      // Use smaller timeslice for faster chunk availability
+      mediaRecorder.start(50);
+      recordingStartTimeRef.current = Date.now();
       setIsInitializing(false);
       setIsRecording(true);
     } catch (error) {
@@ -116,6 +120,18 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
+      const recordingDuration = Date.now() - recordingStartTimeRef.current;
+      
+      if (recordingDuration < MIN_RECORDING_DURATION_MS) {
+        // Recording too short - show feedback and don't process
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
+        setIsTooShort(true);
+        toast.info('Hold Alt+Q a bit longer', { duration: 1500 });
+        setTimeout(() => setIsTooShort(false), 1500);
+        return;
+      }
+      
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setIsProcessing(true);
@@ -149,10 +165,10 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
         throw new Error(data.error);
       }
 
-      if (data.text) {
+      if (data.text && data.text.trim()) {
         onTranscription(data.text);
       } else {
-        toast.error('No speech detected. Please try again.');
+        toast.error('No speech detected. Speak clearly and hold Alt+Q longer.');
       }
     } catch (error) {
       console.error('Transcription error:', error);
@@ -166,6 +182,7 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
     isRecording,
     isProcessing,
     isInitializing,
+    isTooShort,
     startRecording,
     stopRecording,
   };
