@@ -1,4 +1,4 @@
-import { X, BookmarkPlus, Volume2, Copy, Check } from 'lucide-react';
+import { X, Volume2, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -14,8 +14,6 @@ interface TranslationPopupProps {
   sourceLanguage: string;
   targetLanguage: string;
   onClose: () => void;
-  onSaveFlashcard: () => void;
-  isAuthenticated: boolean;
 }
 
 export function TranslationPopup({
@@ -25,8 +23,6 @@ export function TranslationPopup({
   sourceLanguage,
   targetLanguage,
   onClose,
-  onSaveFlashcard,
-  isAuthenticated,
 }: TranslationPopupProps) {
   const [copied, setCopied] = useState(false);
 
@@ -104,23 +100,11 @@ export function TranslationPopup({
               variant="outline"
               size="sm"
               onClick={handleCopy}
-              className="flex-1"
+              className="w-full"
             >
               {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-              {copied ? 'Copied' : 'Copy'}
+              {copied ? 'Copied' : 'Copy Translation'}
             </Button>
-            
-            {isAuthenticated && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={onSaveFlashcard}
-                className="flex-1"
-              >
-                <BookmarkPlus className="h-4 w-4 mr-2" />
-                Save to Flashcards
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>
