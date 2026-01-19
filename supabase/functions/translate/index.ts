@@ -77,8 +77,8 @@ Always respond in this JSON format:
 }`;
 
     const userPrompt = context
-      ? `Translate the following ${sourceLangName} text to ${targetLangName} in the context of "${context}":\n\n"${text}"`
-      : `Translate the following ${sourceLangName} text to ${targetLangName}:\n\n"${text}"`;
+      ? `The user said (in ${sourceLangName}): "${text}"\nContext: "${context}"\n\nProvide the response in ${targetLangName}.`
+      : `The user said (in ${sourceLangName}): "${text}"\n\nProvide the response in ${targetLangName}. If they are asking about the meaning of a word or phrase, explain it. If they want a translation, translate naturally.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
