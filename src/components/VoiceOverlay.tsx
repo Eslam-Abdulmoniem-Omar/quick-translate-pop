@@ -11,7 +11,6 @@ interface VoiceOverlayProps {
 }
 
 export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayProps) {
-  const [isVisible, setIsVisible] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [currentTranslation, setCurrentTranslation] = useState<{
     text: string;
@@ -27,7 +26,6 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
       setCurrentTranslation({ text, context, result });
       setShowToast(true);
     }
-    setTimeout(() => setIsVisible(false), 150);
   }, [translate]);
 
   const { isRecording, isProcessing, startRecording, stopRecording } = useVoiceInput({
@@ -41,7 +39,6 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
       if (e.key.toLowerCase() === 'q' && e.altKey && !e.repeat) {
         e.preventDefault();
         if (!isRecording && !isProcessing && !isTranslating) {
-          setIsVisible(true);
           startRecording();
         }
       }
@@ -80,69 +77,61 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
         ? 'Translating...' 
         : null;
 
-  if (!isVisible && !isActive) return null;
-
   return (
     <>
-      {/* Subtle backdrop */}
+      {/* Bottom-center pill bar - Wispr Flow style */}
       <div 
         className={cn(
-          'fixed inset-0 z-50 flex items-center justify-center',
-          'bg-background/60 backdrop-blur-md',
-          'animate-fade-in'
+          'fixed bottom-6 left-1/2 -translate-x-1/2 z-50',
+          'transition-all duration-200 ease-out',
+          isActive 
+            ? 'translate-y-0 opacity-100' 
+            : 'translate-y-4 opacity-0 pointer-events-none'
         )}
       >
-        {/* Minimal glow */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className={cn(
-            'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-            'w-[300px] h-[300px] rounded-full',
-            'bg-primary/10 blur-3xl',
-            isRecording && 'animate-breathe'
-          )} />
-        </div>
-
-        {/* Main content */}
-        <div className="relative z-10 flex flex-col items-center gap-4">
+        <div className={cn(
+          'glass-effect rounded-full px-5 py-3',
+          'border border-border/30 shadow-lg',
+          'flex items-center gap-3'
+        )}>
           {isRecording ? (
             <>
               <AudioWaveform 
                 isActive={true} 
-                barCount={12}
-                className="h-16 w-48"
+                barCount={8}
+                className="h-5 w-20"
               />
-              <p className="text-lg font-medium text-foreground/80">
+              <span className="text-sm font-medium text-foreground/80 whitespace-nowrap">
                 {statusText}
-              </p>
+              </span>
             </>
           ) : (
             <>
-              {/* Processing spinner */}
-              <div className="relative flex items-center justify-center w-20 h-20">
+              {/* Compact processing spinner */}
+              <div className="relative flex items-center justify-center w-5 h-5">
                 <div className="absolute inset-0 animate-spin-slow">
                   {[...Array(3)].map((_, i) => (
                     <div
                       key={i}
-                      className="absolute w-2 h-2 bg-primary rounded-full"
+                      className="absolute w-1.5 h-1.5 bg-primary rounded-full"
                       style={{
                         top: '50%',
                         left: '50%',
-                        transform: `rotate(${i * 120}deg) translateY(-28px) translateX(-50%)`,
+                        transform: `rotate(${i * 120}deg) translateY(-8px) translateX(-50%)`,
                       }}
                     />
                   ))}
                 </div>
-                <div className="w-8 h-8 rounded-full bg-primary/20 animate-pulse" />
               </div>
-              <p className="text-lg font-medium text-foreground/80">
+              <span className="text-sm font-medium text-foreground/80 whitespace-nowrap">
                 {statusText}
-              </p>
+              </span>
             </>
           )}
         </div>
       </div>
 
-      {/* Translation Toast */}
+      {/* Translation Toast - Independent of recording state */}
       {showToast && currentTranslation && (
         <TranslationToast
           originalText={currentTranslation.text}
