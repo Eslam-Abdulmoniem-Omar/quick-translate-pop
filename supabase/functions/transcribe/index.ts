@@ -46,7 +46,7 @@ serve(async (req) => {
     // Create form data for OpenAI Whisper API
     const apiFormData = new FormData();
     apiFormData.append('file', newFile);
-    apiFormData.append('model', 'whisper-1');
+    apiFormData.append('model', 'gpt-4o-transcribe');
 
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
