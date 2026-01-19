@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Copy, Check } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TranslationResult } from '@/hooks/useTranslation';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface TranslationToastProps {
@@ -20,7 +19,6 @@ export function TranslationToast({
   onClose,
   autoDismiss = 10000,
 }: TranslationToastProps) {
-  const [copied, setCopied] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -53,13 +51,6 @@ export function TranslationToast({
     setIsPaused(false);
   };
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(result.translation);
-    setCopied(true);
-    toast.success('Copied');
-    setTimeout(() => setCopied(false), 1500);
-  };
-
   const handleClose = () => {
     setIsVisible(false);
     setTimeout(onClose, 200);
@@ -83,11 +74,6 @@ export function TranslationToast({
           <p className="text-base font-medium text-foreground leading-snug">
             {result.translation}
           </p>
-          {result.pronunciation && (
-            <p className="text-xs text-muted-foreground font-mono mt-1">
-              /{result.pronunciation}/
-            </p>
-          )}
         </div>
 
         {/* Close button */}
@@ -98,26 +84,6 @@ export function TranslationToast({
           className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground"
         >
           <X className="h-3 w-3" />
-        </Button>
-
-        {/* Copy button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCopy}
-          className="mt-2 h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-        >
-          {copied ? (
-            <>
-              <Check className="h-3 w-3" />
-              Copied
-            </>
-          ) : (
-            <>
-              <Copy className="h-3 w-3" />
-              Copy
-            </>
-          )}
         </Button>
       </div>
     </div>
