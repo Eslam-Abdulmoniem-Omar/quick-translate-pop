@@ -50,18 +50,28 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'q') {
+      // Stop recording when Q is released OR when Alt is released
+      if (e.key.toLowerCase() === 'q' || e.key === 'Alt') {
         if (isRecording) {
           stopRecording();
         }
       }
     };
 
+    // Stop recording if window loses focus
+    const handleBlur = () => {
+      if (isRecording) {
+        stopRecording();
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
     };
   }, [isRecording, isProcessing, isTranslating, startRecording, stopRecording]);
 
