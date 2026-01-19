@@ -1,83 +1,54 @@
+import { Mic, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface VoiceButtonProps {
   isRecording: boolean;
   isProcessing: boolean;
-  onMouseDown?: () => void;
-  onMouseUp?: () => void;
-  onClick?: () => void;
+  onClick: () => void;
   size?: 'sm' | 'md' | 'lg';
 }
 
-const NUM_BARS = 24;
-
-export function VoiceButton({ 
-  isRecording, 
-  isProcessing, 
-  onMouseDown, 
-  onMouseUp, 
-  onClick,
-  size = 'lg' 
-}: VoiceButtonProps) {
+export function VoiceButton({ isRecording, isProcessing, onClick, size = 'lg' }: VoiceButtonProps) {
   const sizeClasses = {
-    sm: 'h-12 px-6',
-    md: 'h-14 px-8',
-    lg: 'h-16 px-10',
+    sm: 'w-12 h-12',
+    md: 'w-16 h-16',
+    lg: 'w-20 h-20',
   };
 
-  const barHeights = {
-    sm: 16,
-    md: 20,
-    lg: 24,
+  const iconSizes = {
+    sm: 'w-5 h-5',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8',
   };
-
-  const isActive = isRecording || isProcessing;
 
   return (
     <button
-      onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
       onClick={onClick}
       disabled={isProcessing}
       className={cn(
-        'relative rounded-full flex items-center justify-center gap-0.5 transition-all duration-300',
+        'relative rounded-full flex items-center justify-center transition-all duration-300',
         sizeClasses[size],
-        isActive 
-          ? 'bg-secondary border-2 border-border shadow-lg' 
-          : 'bg-secondary hover:bg-secondary/80 border-2 border-border shadow-md hover:shadow-lg',
-        isProcessing && 'cursor-not-allowed'
+        isRecording 
+          ? 'bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30' 
+          : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30',
+        isProcessing && 'opacity-70 cursor-not-allowed'
       )}
     >
-      {/* Recording indicator dot */}
-      <div 
-        className={cn(
-          'absolute left-3 w-2 h-2 rounded-full transition-all duration-300',
-          isRecording ? 'bg-destructive animate-pulse' : 'bg-muted-foreground/30'
+      {/* Pulse animation when recording */}
+      {isRecording && (
+        <>
+          <span className="absolute inset-0 rounded-full bg-destructive animate-pulse-ring" />
+          <span className="absolute inset-0 rounded-full bg-destructive animate-pulse-ring" style={{ animationDelay: '0.5s' }} />
+        </>
+      )}
+      
+      <span className="relative z-10">
+        {isProcessing ? (
+          <Loader2 className={cn(iconSizes[size], 'animate-spin')} />
+        ) : (
+          <Mic className={iconSizes[size]} />
         )}
-      />
-
-      {/* Waveform bars */}
-      <div className="flex items-center justify-center gap-[2px] ml-2">
-        {Array.from({ length: NUM_BARS }).map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              'w-[2px] rounded-full transition-all',
-              isRecording 
-                ? 'bg-foreground animate-waveform' 
-                : isProcessing
-                  ? 'bg-primary animate-processing'
-                  : 'bg-muted-foreground/40'
-            )}
-            style={{
-              height: isActive 
-                ? `${barHeights[size]}px` 
-                : `${Math.max(4, barHeights[size] * (0.2 + Math.abs(Math.sin(i * 0.5)) * 0.3))}px`,
-              animationDelay: isActive ? `${i * 50}ms` : '0ms',
-            }}
-          />
-        ))}
-      </div>
+      </span>
     </button>
   );
 }

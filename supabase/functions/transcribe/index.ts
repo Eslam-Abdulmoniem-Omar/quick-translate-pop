@@ -18,54 +18,36 @@ serve(async (req) => {
       throw new Error('No audio file provided');
     }
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not configured');
+    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ELEVENLABS_API_KEY is not configured');
     }
 
-    console.log('Transcribing audio file:', audioFile.name, 'Size:', audioFile.size, 'Type:', audioFile.type);
+    console.log('Transcribing audio file:', audioFile.name, 'Size:', audioFile.size);
 
-    // Get the audio data as array buffer
-    const audioBuffer = await audioFile.arrayBuffer();
-    
-    // Determine file extension from mime type
-    let extension = 'webm';
-    if (audioFile.type.includes('mp4')) {
-      extension = 'mp4';
-    } else if (audioFile.type.includes('ogg')) {
-      extension = 'ogg';
-    } else if (audioFile.type.includes('wav')) {
-      extension = 'wav';
-    }
-    
-    // Create a new File with explicit type for OpenAI
-    const newFile = new File([audioBuffer], `audio.${extension}`, { 
-      type: audioFile.type || 'audio/webm'
-    });
-
-    // Create form data for OpenAI Whisper API
     const apiFormData = new FormData();
-    apiFormData.append('file', newFile);
-    apiFormData.append('model', 'gpt-4o-transcribe');
+    apiFormData.append('file', audioFile);
+    apiFormData.append('model_id', 'scribe_v2');
+    apiFormData.append('language_code', 'eng');
 
-    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'xi-api-key': ELEVENLABS_API_KEY,
       },
       body: apiFormData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI Whisper API error:', response.status, errorText);
-      throw new Error(`OpenAI Whisper API error: ${response.status}`);
+      console.error('ElevenLabs API error:', response.status, errorText);
+      throw new Error(`ElevenLabs API error: ${response.status}`);
     }
 
     const transcription = await response.json();
     console.log('Transcription result:', transcription.text);
 
-    return new Response(JSON.stringify({ text: transcription.text }), {
+    return new Response(JSON.stringify(transcription), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
