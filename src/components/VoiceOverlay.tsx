@@ -28,7 +28,7 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     }
   }, [translate]);
 
-  const { isRecording, isProcessing, isInitializing, isTooShort, startRecording, stopRecording } = useVoiceInput({
+  const { isRecording, isProcessing, isInitializing, isTooShort, activeStream, startRecording, stopRecording } = useVoiceInput({
     onTranscription: (text) => {
       handleTranslation(text);
     },
@@ -69,6 +69,8 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
   }, [isRecording, isProcessing, isTranslating, isInitializing, startRecording, stopRecording]);
 
   const isActive = isRecording || isProcessing || isTranslating || isInitializing || isTooShort;
+  const isIdle = !isActive;
+  
   const statusText = isTooShort
     ? 'Too short'
     : isInitializing
@@ -83,35 +85,42 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
 
   return (
     <>
-      {/* Bottom-center pill bar - Wispr Flow style */}
+      {/* Bottom-center pill bar - Always visible */}
       <div 
         className={cn(
           'fixed bottom-6 left-1/2 -translate-x-1/2 z-50',
-          'transition-all duration-100 ease-out',
-          isActive 
-            ? 'translate-y-0 opacity-100' 
-            : 'translate-y-4 opacity-0 pointer-events-none'
+          'transition-all duration-200 ease-out'
         )}
       >
         <div className={cn(
-          'glass-effect rounded-full px-5 py-3',
-          'border border-border/30 shadow-lg',
-          'flex items-center gap-3'
+          'glass-effect rounded-full shadow-lg',
+          'border border-border/30',
+          'flex items-center justify-center',
+          'transition-all duration-200 ease-out',
+          // Dynamic sizing based on state
+          isIdle 
+            ? 'w-10 h-10' 
+            : 'px-5 py-3 min-w-[140px]'
         )}>
-          {isRecording ? (
-            <>
+          {isIdle ? (
+            // Idle state: single static dot
+            <div className="w-2 h-2 bg-foreground/50 rounded-full" />
+          ) : isRecording ? (
+            // Recording state: animated waveform with real audio data
+            <div className="flex items-center gap-3">
               <AudioWaveform 
-                isActive={true} 
+                isActive={true}
+                stream={activeStream}
                 barCount={8}
                 className="h-5 w-20"
               />
               <span className="text-sm font-medium text-foreground/80 whitespace-nowrap">
                 {statusText}
               </span>
-            </>
+            </div>
           ) : (
-            <>
-              {/* Compact processing spinner */}
+            // Processing/translating states: spinner
+            <div className="flex items-center gap-3">
               <div className="relative flex items-center justify-center w-5 h-5">
                 <div className="absolute inset-0 animate-spin-slow">
                   {[...Array(3)].map((_, i) => (
@@ -130,7 +139,7 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
               <span className="text-sm font-medium text-foreground/80 whitespace-nowrap">
                 {statusText}
               </span>
-            </>
+            </div>
           )}
         </div>
       </div>
