@@ -176,7 +176,7 @@
 }
 
 .animate-spin-slow {
-  animation: spin-slow 1.5s linear infinite;
+  animation: spin-slow 1s linear infinite;
 }
 
 /* Keyboard shortcut styling */
@@ -197,7 +197,7 @@
 }
 
 .animate-slide-up {
-  animation: slide-up 0.3s ease-out;
+  animation: slide-up 0.15s ease-out;
 }
 
 /* Glow effect for active states */

@@ -1,29 +1,81 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 
 interface UseVoiceInputOptions {
   onTranscription: (text: string) => void;
 }
 
+// Global warm stream - persists across hook instances
+let warmStream: MediaStream | null = null;
+let isWarmingUp = false;
+
 export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
-  const startRecording = useCallback(async () => {
+  // Warm up microphone on mount
+  useEffect(() => {
+    warmUpMicrophone();
+  }, []);
+
+  const warmUpMicrophone = useCallback(async () => {
+    if (warmStream || isWarmingUp) return;
+    
+    isWarmingUp = true;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      warmStream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           sampleRate: 16000,
         }
       });
-
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4',
+      // Disable tracks but keep stream alive for instant re-enable
+      warmStream.getTracks().forEach(track => {
+        track.enabled = false;
       });
+    } catch (error) {
+      console.log('Microphone warm-up skipped:', error);
+    } finally {
+      isWarmingUp = false;
+    }
+  }, []);
+
+  const startRecording = useCallback(async () => {
+    // Show initializing state immediately
+    setIsInitializing(true);
+    
+    try {
+      let stream: MediaStream;
+      
+      // Use warm stream if available, otherwise get new one
+      if (warmStream) {
+        warmStream.getTracks().forEach(track => {
+          track.enabled = true;
+        });
+        stream = warmStream;
+      } else {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 16000,
+          }
+        });
+        warmStream = stream;
+      }
+
+      // Use opus codec for smaller file size
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+        ? 'audio/webm;codecs=opus' 
+        : MediaRecorder.isTypeSupported('audio/webm') 
+          ? 'audio/webm' 
+          : 'audio/mp4';
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
 
       chunksRef.current = [];
 
@@ -34,9 +86,12 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
       };
 
       mediaRecorder.onstop = async () => {
-        stream.getTracks().forEach(track => track.stop());
+        // Disable tracks but don't stop them (keep warm)
+        stream.getTracks().forEach(track => {
+          track.enabled = false;
+        });
         
-        const audioBlob = new Blob(chunksRef.current, { type: mediaRecorder.mimeType });
+        const audioBlob = new Blob(chunksRef.current, { type: mimeType });
         
         if (audioBlob.size < 1000) {
           toast.error('Recording too short. Please try again.');
@@ -48,11 +103,14 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
       };
 
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
+      // Use timeslice for faster chunk availability
+      mediaRecorder.start(100);
+      setIsInitializing(false);
       setIsRecording(true);
     } catch (error) {
       console.error('Error starting recording:', error);
       toast.error('Could not access microphone. Please check permissions.');
+      setIsInitializing(false);
     }
   }, []);
 
@@ -107,6 +165,7 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
   return {
     isRecording,
     isProcessing,
+    isInitializing,
     startRecording,
     stopRecording,
   };
