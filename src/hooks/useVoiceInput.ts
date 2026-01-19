@@ -141,6 +141,36 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
     }
   }, [isRecording]);
 
+  // Clean filler words from transcribed text
+  const cleanFillerWords = (text: string): string => {
+    const fillerPatterns = [
+      /\b(um|uh|er|ah|eh|hmm|hm|mm)\b/gi,           // Basic fillers
+      /\b(like,?\s*)+\b(?=\s)/gi,                    // "like" as filler
+      /\b(you know,?\s*)+/gi,                        // "you know"
+      /\b(I mean,?\s*)+/gi,                          // "I mean"
+      /\b(so,?\s*)+(?=\s*[a-z])/gi,                  // "so" as filler at start
+      /\b(basically,?\s*)+/gi,                       // "basically"
+      /\b(actually,?\s*)+/gi,                        // "actually" as filler
+      /\b(right,?\s*)+(?=\s*[a-z])/gi,               // "right" as filler
+    ];
+    
+    let cleaned = text;
+    
+    fillerPatterns.forEach(pattern => {
+      cleaned = cleaned.replace(pattern, ' ');
+    });
+    
+    // Clean up multiple spaces and trim
+    cleaned = cleaned.replace(/\s+/g, ' ').trim();
+    
+    // Capitalize first letter
+    if (cleaned.length > 0) {
+      cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    }
+    
+    return cleaned;
+  };
+
   const transcribeAudio = async (audioBlob: Blob) => {
     try {
       const formData = new FormData();
@@ -174,7 +204,14 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
       const isAudioEventOnly = /^\[.*\]$/.test(text) || !text;
       
       if (text && !isAudioEventOnly) {
-        onTranscription(text);
+        // Clean filler words before sending to translation
+        const cleanedText = cleanFillerWords(text);
+        
+        if (cleanedText) {
+          onTranscription(cleanedText);
+        } else {
+          toast.info("We couldn't hear you", { duration: 1500 });
+        }
       } else {
         toast.info("We couldn't hear you", { duration: 1500 });
       }
