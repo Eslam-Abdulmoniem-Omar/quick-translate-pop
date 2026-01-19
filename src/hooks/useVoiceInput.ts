@@ -171,7 +171,7 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
       if (data.text && data.text.trim()) {
         onTranscription(data.text);
       } else {
-        toast.error('No speech detected. Speak clearly and hold Alt+Q longer.');
+        toast.info("We couldn't hear you", { duration: 2000 });
       }
     } catch (error) {
       console.error('Transcription error:', error);
