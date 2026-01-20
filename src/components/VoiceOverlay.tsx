@@ -99,44 +99,44 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
           'transition-all duration-200 ease-out',
           // Dynamic sizing based on state
           isIdle 
-            ? 'w-10 h-10' 
-            : 'px-5 py-3 min-w-[140px]'
+            ? 'w-9 h-9' 
+            : 'px-4 py-2.5 min-w-[120px]'
         )}>
           {isIdle ? (
             // Idle state: single static dot
-            <div className="w-2 h-2 bg-foreground/50 rounded-full" />
+            <div className="w-1.5 h-1.5 bg-foreground/40 rounded-full" />
           ) : isRecording ? (
             // Recording state: animated waveform with real audio data
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <AudioWaveform 
                 isActive={true}
                 stream={activeStream}
-                barCount={8}
-                className="h-5 w-20"
+                barCount={5}
+                className="h-4 w-[22px]"
               />
-              <span className="text-sm font-medium text-foreground/80 whitespace-nowrap">
+              <span className="text-xs font-medium text-foreground/70 whitespace-nowrap">
                 {statusText}
               </span>
             </div>
           ) : (
             // Processing/translating states: spinner
-            <div className="flex items-center gap-3">
-              <div className="relative flex items-center justify-center w-5 h-5">
+            <div className="flex items-center gap-2.5">
+              <div className="relative flex items-center justify-center w-4 h-4">
                 <div className="absolute inset-0 animate-spin-slow">
                   {[...Array(3)].map((_, i) => (
                     <div
                       key={i}
-                      className="absolute w-1.5 h-1.5 bg-primary rounded-full"
+                      className="absolute w-1 h-1 bg-primary rounded-full"
                       style={{
                         top: '50%',
                         left: '50%',
-                        transform: `rotate(${i * 120}deg) translateY(-8px) translateX(-50%)`,
+                        transform: `rotate(${i * 120}deg) translateY(-6px) translateX(-50%)`,
                       }}
                     />
                   ))}
                 </div>
               </div>
-              <span className="text-sm font-medium text-foreground/80 whitespace-nowrap">
+              <span className="text-xs font-medium text-foreground/70 whitespace-nowrap">
                 {statusText}
               </span>
             </div>
