@@ -1,10 +1,32 @@
 import { useState, useEffect } from 'react';
 import { VoiceOverlay } from '@/components/VoiceOverlay';
-import { SettingsPanel } from '@/components/SettingsPanel';
 
 const Index = () => {
-  const [sourceLanguage, setSourceLanguage] = useState('en');
-  const [targetLanguage, setTargetLanguage] = useState('ar');
+  const [sourceLanguage, setSourceLanguage] = useState(() => {
+    return localStorage.getItem('translingual-source-lang') || 'en';
+  });
+  const [targetLanguage, setTargetLanguage] = useState(() => {
+    return localStorage.getItem('translingual-target-lang') || 'ar';
+  });
+
+  // Persist language settings
+  useEffect(() => {
+    localStorage.setItem('translingual-source-lang', sourceLanguage);
+    localStorage.setItem('translingual-target-lang', targetLanguage);
+  }, [sourceLanguage, targetLanguage]);
+
+  // Listen for settings changes from Electron (via IPC)
+  useEffect(() => {
+    const handleSettingsChange = (event: CustomEvent<{ sourceLanguage: string; targetLanguage: string }>) => {
+      setSourceLanguage(event.detail.sourceLanguage);
+      setTargetLanguage(event.detail.targetLanguage);
+    };
+    
+    window.addEventListener('settings-changed', handleSettingsChange as EventListener);
+    return () => {
+      window.removeEventListener('settings-changed', handleSettingsChange as EventListener);
+    };
+  }, []);
 
   // Warm up microphone permission on first user interaction
   useEffect(() => {
@@ -32,26 +54,12 @@ const Index = () => {
     };
   }, []);
 
-  const swapLanguages = () => {
-    setSourceLanguage(targetLanguage);
-    setTargetLanguage(sourceLanguage);
-  };
-
   return (
     <div className="min-h-screen">
-      {/* Voice Overlay - appears on Alt+T */}
+      {/* Voice Overlay - appears on Alt+T, completely invisible when idle */}
       <VoiceOverlay 
         sourceLanguage={sourceLanguage} 
         targetLanguage={targetLanguage} 
-      />
-
-      {/* Settings Button - always visible in corner */}
-      <SettingsPanel
-        sourceLanguage={sourceLanguage}
-        targetLanguage={targetLanguage}
-        onSourceChange={setSourceLanguage}
-        onTargetChange={setTargetLanguage}
-        onSwap={swapLanguages}
       />
     </div>
   );
