@@ -1,7 +1,8 @@
 import { useEffect, useCallback } from 'react';
 
 interface ShortcutConfig {
-  key: string;
+  key?: string;      // Character key (legacy)
+  code?: string;     // Physical key code (preferred for i18n)
   altKey?: boolean;
   ctrlKey?: boolean;
   shiftKey?: boolean;
@@ -17,7 +18,12 @@ export function useKeyboardShortcut(
     (event: KeyboardEvent) => {
       if (!enabled) return;
 
-      const matchesKey = event.key.toLowerCase() === config.key.toLowerCase();
+      // Support both physical key code and character key
+      const matchesKey = config.code 
+        ? event.code === config.code 
+        : config.key 
+          ? event.key.toLowerCase() === config.key.toLowerCase()
+          : false;
       const matchesAlt = config.altKey ? event.altKey : !event.altKey;
       const matchesCtrl = config.ctrlKey ? event.ctrlKey : !event.ctrlKey;
       const matchesShift = config.shiftKey ? event.shiftKey : !event.shiftKey;

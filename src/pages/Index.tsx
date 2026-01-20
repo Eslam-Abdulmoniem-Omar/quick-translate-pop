@@ -39,7 +39,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Voice Overlay - appears on Alt+Q */}
+      {/* Voice Overlay - appears on Alt+T */}
       <VoiceOverlay 
         sourceLanguage={sourceLanguage} 
         targetLanguage={targetLanguage} 
