@@ -36,7 +36,8 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'q' && e.altKey && !e.repeat) {
+      // Use e.code for physical key position - works regardless of keyboard layout
+      if (e.code === 'KeyT' && e.altKey && !e.repeat) {
         e.preventDefault();
         if (!isRecording && !isProcessing && !isTranslating && !isInitializing) {
           startRecording();
@@ -45,7 +46,8 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'q' || e.key === 'Alt') {
+      // Check physical key code or Alt release to stop recording
+      if (e.code === 'KeyT' || e.key === 'Alt') {
         if (isRecording) {
           stopRecording();
         }
