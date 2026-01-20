@@ -98,7 +98,7 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
         const audioBlob = new Blob(chunksRef.current, { type: mimeType });
         
         if (audioBlob.size < 5000) {
-          toast.error('Recording too short. Hold Alt+Q longer.');
+          toast.error('Recording too short. Hold Alt+T longer.');
           setIsProcessing(false);
           return;
         }
@@ -129,7 +129,7 @@ export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
         mediaRecorderRef.current.stop();
         setIsRecording(false);
         setIsTooShort(true);
-        toast.info('Hold Alt+Q a bit longer', { duration: 1500 });
+        toast.info('Hold Alt+T a bit longer', { duration: 1500 });
         setTimeout(() => setIsTooShort(false), 1500);
         return;
       }

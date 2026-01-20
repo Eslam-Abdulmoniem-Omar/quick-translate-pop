@@ -43,9 +43,9 @@ export function FloatingDock() {
     }
   }, [isRecording, startRecording, stopRecording]);
 
-  // Alt+Q shortcut for voice input
+  // Alt+T shortcut for voice input
   useKeyboardShortcut(
-    { key: 'q', altKey: true },
+    { code: 'KeyT', altKey: true },
     handleVoiceClick,
     !isProcessing && !isTranslating
   );
@@ -136,7 +136,7 @@ export function FloatingDock() {
               <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
                 <span className="kbd px-1.5 py-0.5 text-[10px]">Alt</span>
                 <span>+</span>
-                <span className="kbd px-1.5 py-0.5 text-[10px]">Q</span>
+                <span className="kbd px-1.5 py-0.5 text-[10px]">T</span>
               </div>
             </div>
           )}
