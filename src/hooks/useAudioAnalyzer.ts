@@ -17,7 +17,7 @@ export function useAudioAnalyzer(stream: MediaStream | null, barCount: number = 
     const audioContext = new AudioContext();
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 64; // Small for performance, gives us 32 frequency bins
-    analyser.smoothingTimeConstant = 0.4; // Smooth transitions
+    analyser.smoothingTimeConstant = 0.3; // Faster response to voice
 
     const source = audioContext.createMediaStreamSource(stream);
     source.connect(analyser);
@@ -48,9 +48,12 @@ export function useAudioAnalyzer(stream: MediaStream | null, barCount: number = 
           sum += dataArray[j];
         }
         
-        // Normalize to 0-1 range and apply some scaling for visual appeal
+        // Normalize to 0-1 range and apply exponential scaling for voice response
         const avg = sum / (endBin - startBin);
-        const normalized = Math.min(1, (avg / 255) * 1.5); // Boost a bit for visibility
+        const linear = avg / 255;
+        // Apply power curve: quiet sounds stay low, loud sounds peak dramatically
+        const exponential = Math.pow(linear, 0.7) * 1.8;
+        const normalized = Math.min(1, exponential);
         newAmplitudes.push(normalized);
       }
 
