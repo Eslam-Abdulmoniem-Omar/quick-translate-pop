@@ -70,15 +70,9 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     };
   }, [isRecording, isProcessing, isTranslating, isInitializing, startRecording, stopRecording]);
 
-  // Handle auto-hide after translation toast closes
   const handleToastClose = useCallback(() => {
     setShowToast(false);
     setCurrentTranslation(null);
-    
-    // Signal Electron to hide the overlay window (if running in Electron)
-    if (window.electronAPI?.hideOverlay) {
-      window.electronAPI.hideOverlay();
-    }
   }, []);
 
   const isActive = isRecording || isProcessing || isTranslating || isInitializing || isTooShort;

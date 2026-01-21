@@ -18,27 +18,10 @@ const Settings = () => {
     return localStorage.getItem('translingual-target-lang') || 'ar';
   });
 
-  // Load settings from Electron store on mount
-  useEffect(() => {
-    if (window.electronAPI?.loadSettings) {
-      window.electronAPI.loadSettings().then((settings) => {
-        if (settings) {
-          setSourceLanguage(settings.sourceLanguage);
-          setTargetLanguage(settings.targetLanguage);
-        }
-      });
-    }
-  }, []);
-
   // Save settings whenever they change
   useEffect(() => {
     localStorage.setItem('translingual-source-lang', sourceLanguage);
     localStorage.setItem('translingual-target-lang', targetLanguage);
-    
-    // Save to Electron store and notify main window
-    if (window.electronAPI?.saveSettings) {
-      window.electronAPI.saveSettings({ sourceLanguage, targetLanguage });
-    }
   }, [sourceLanguage, targetLanguage]);
 
   const swapLanguages = () => {
