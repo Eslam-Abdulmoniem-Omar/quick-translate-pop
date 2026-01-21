@@ -15,17 +15,17 @@ const Index = () => {
     localStorage.setItem('translingual-target-lang', targetLanguage);
   }, [sourceLanguage, targetLanguage]);
 
-  // Listen for settings changes from Electron (via IPC)
+  // Listen for storage changes (from settings page)
   useEffect(() => {
-    const handleSettingsChange = (event: CustomEvent<{ sourceLanguage: string; targetLanguage: string }>) => {
-      setSourceLanguage(event.detail.sourceLanguage);
-      setTargetLanguage(event.detail.targetLanguage);
+    const handleStorage = () => {
+      const source = localStorage.getItem('translingual-source-lang');
+      const target = localStorage.getItem('translingual-target-lang');
+      if (source) setSourceLanguage(source);
+      if (target) setTargetLanguage(target);
     };
-    
-    window.addEventListener('settings-changed', handleSettingsChange as EventListener);
-    return () => {
-      window.removeEventListener('settings-changed', handleSettingsChange as EventListener);
-    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   // Warm up microphone permission on first user interaction
@@ -33,14 +33,11 @@ const Index = () => {
     const warmUpMic = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
-          // Keep stream alive but muted for instant re-use
           stream.getTracks().forEach(track => {
             track.enabled = false;
           });
         })
-        .catch(() => {
-          // Permission denied or no mic - that's okay, will prompt later
-        });
+        .catch(() => {});
       window.removeEventListener('click', warmUpMic);
       window.removeEventListener('keydown', warmUpMic);
     };
@@ -56,7 +53,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Voice Overlay - appears on Alt+T, completely invisible when idle */}
       <VoiceOverlay 
         sourceLanguage={sourceLanguage} 
         targetLanguage={targetLanguage} 
