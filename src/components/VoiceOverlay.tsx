@@ -138,17 +138,17 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
   });
 
   useEffect(() => {
-    // Electron IPC listeners
-    if (window.electron) {
-      window.electron.onStartRecording(() => {
+    // Chrome extension message listener
+    const handleExtensionMessage = (event: CustomEvent) => {
+      const message = event.detail;
+      if (message.type === 'START_RECORDING') {
         if (!isRecording && !isProcessing && !isTranslating && !isInitializing) {
           mark('hotkey-pressed');
           startRecording();
           startPopupGuard();
         }
-      });
-
-      window.electron.onStopRecording(() => {
+      }
+      if (message.type === 'STOP_RECORDING') {
         // CRITICAL: Show popup immediately, regardless of recording state
         showPopupImmediately();
         
@@ -159,14 +159,13 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
             measureRecordingPhase();
           });
         }
-      });
+      }
+    };
 
-      return () => {
-        window.electron?.removeListeners();
-      };
-    }
+    // Listen for extension messages via custom event
+    window.addEventListener('translingual-message', handleExtensionMessage as EventListener);
 
-    // Fallback for browser development (Alt+T or Ctrl+Shift)
+    // Browser keyboard fallback (Alt+T)
     const handleKeyDown = (e: KeyboardEvent) => {
       // Use e.code for physical key position - works regardless of keyboard layout
       if (e.code === 'KeyT' && e.altKey && !e.repeat) {
@@ -234,6 +233,7 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('blur', handleBlur);
     return () => {
+      window.removeEventListener('translingual-message', handleExtensionMessage as EventListener);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('blur', handleBlur);
@@ -252,11 +252,7 @@ export function VoiceOverlay({ sourceLanguage, targetLanguage }: VoiceOverlayPro
   const isActive = isRecording || isProcessing || isTranslating || isInitializing || isTooShort;
   const isIdle = !isActive && !showToast;
 
-  // Tell the main process when we're idle so it can make the window click-through
-  // and auto-hide (prevents the "blank rectangle" problem on Windows).
-  useEffect(() => {
-    window.electron?.setOverlayIdle?.(isIdle);
-  }, [isIdle]);
+  // No-op for extension context (Electron code removed)
   
   return (
     <>

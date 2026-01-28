@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TransLingual Settings</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 320px;
+      min-height: 200px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #fafafa;
+      color: #202124;
+    }
+    
+    .container {
+      padding: 16px;
+    }
+    
+    h1 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #202124;
+    }
+    
+    .form-group {
+      margin-bottom: 12px;
+    }
+    
+    label {
+      display: block;
+      font-size: 12px;
+      color: #5f6368;
+      margin-bottom: 6px;
+    }
+    
+    select {
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      font-size: 14px;
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      background: white;
+      color: #202124;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235f6368' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    
+    select:focus {
+      outline: none;
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+    }
+    
+    .swap-btn {
+      width: 100%;
+      height: 36px;
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #1a73e8;
+      background: white;
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .swap-btn:hover {
+      background: #f8f9fa;
+    }
+    
+    .swap-btn:active {
+      background: #f1f3f4;
+    }
+    
+    .shortcut-hint {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f1f3f4;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #5f6368;
+    }
+    
+    .shortcut-hint strong {
+      color: #202124;
+    }
+    
+    kbd {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-family: monospace;
+      background: white;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>TransLingual Settings</h1>
+    
+    <div class="form-group">
+      <label for="source-lang">Source Language</label>
+      <select id="source-lang"></select>
+    </div>
+    
+    <button class="swap-btn" id="swap-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+      </svg>
+      Swap Languages
+    </button>
+    
+    <div class="form-group">
+      <label for="target-lang">Target Language</label>
+      <select id="target-lang"></select>
+    </div>
+    
+    <div class="shortcut-hint">
+      <strong>Tip:</strong> Hold <kbd>Alt</kbd> + <kbd>T</kbd> to record and translate on any webpage.
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
