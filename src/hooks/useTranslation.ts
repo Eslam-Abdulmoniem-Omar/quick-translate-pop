@@ -151,7 +151,7 @@ export function useTranslation({ sourceLanguage, targetLanguage }: UseTranslatio
           if (done) break;
           
           // Yield to event loop every chunk to keep UI responsive
-          await new Promise(resolve => queueMicrotask(resolve));
+          await new Promise<void>(resolve => queueMicrotask(() => resolve()));
           
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split('\n');
