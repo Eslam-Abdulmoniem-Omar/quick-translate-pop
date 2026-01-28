@@ -71,14 +71,8 @@
   * {
     @apply border-border;
   }
-  html,
-  body,
-  #root {
-    background: transparent;
-  }
-
   body {
-    @apply text-foreground;
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-family: 'Inter', system-ui, sans-serif;
   }
