@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeftRight, LayoutDashboard, Home } from 'lucide-react';
+import { ArrowLeftRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -9,10 +9,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { LANGUAGES } from '@/lib/languages';
-import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
-  const navigate = useNavigate();
   const [sourceLanguage, setSourceLanguage] = useState(() => {
     return localStorage.getItem('translingual-source-lang') || 'en';
   });
@@ -97,26 +95,6 @@ const Settings = () => {
           <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border border-border">T</kbd>
           {' '}to record and translate.
         </p>
-      </div>
-
-      {/* Navigation Links */}
-      <div className="mt-6 flex gap-3 max-w-xs">
-        <Button
-          variant="outline"
-          onClick={() => navigate('/dashboard')}
-          className="flex-1 gap-2"
-        >
-          <LayoutDashboard className="h-4 w-4" />
-          Dashboard
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => navigate('/')}
-          className="flex-1 gap-2"
-        >
-          <Home className="h-4 w-4" />
-          Home
-        </Button>
       </div>
     </div>
   );

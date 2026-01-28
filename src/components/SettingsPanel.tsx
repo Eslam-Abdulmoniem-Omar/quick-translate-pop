@@ -1,4 +1,4 @@
-import { Settings, ArrowLeftRight, LayoutDashboard } from 'lucide-react';
+import { Settings, ArrowLeftRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -12,9 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { LANGUAGES } from '@/lib/languages';
-import { useNavigate } from 'react-router-dom';
 
 interface SettingsPanelProps {
   sourceLanguage: string;
@@ -31,8 +29,6 @@ export function SettingsPanel({
   onTargetChange,
   onSwap,
 }: SettingsPanelProps) {
-  const navigate = useNavigate();
-
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -94,19 +90,6 @@ export function SettingsPanel({
               ))}
             </SelectContent>
           </Select>
-
-          <Separator className="my-2" />
-
-          {/* Dashboard Link */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/dashboard')}
-            className="w-full h-8 gap-2 text-xs text-muted-foreground hover:text-foreground justify-start"
-          >
-            <LayoutDashboard className="h-3 w-3" />
-            Dashboard
-          </Button>
         </div>
       </PopoverContent>
     </Popover>

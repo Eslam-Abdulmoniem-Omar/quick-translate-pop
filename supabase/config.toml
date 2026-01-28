@@ -36,6 +36,3 @@ verify_jwt = false
 
 [functions.translate]
 verify_jwt = false
-
-[functions.ping]
-verify_jwt = false

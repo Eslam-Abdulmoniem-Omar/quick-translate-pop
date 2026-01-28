@@ -6,10 +6,9 @@ interface AudioWaveformProps {
   stream?: MediaStream | null;
   barCount?: number;
   className?: string;
-  barClassName?: string;
 }
 
-export function AudioWaveform({ isActive, stream, barCount = 5, className, barClassName }: AudioWaveformProps) {
+export function AudioWaveform({ isActive, stream, barCount = 5, className }: AudioWaveformProps) {
   const amplitudes = useAudioAnalyzer(isActive ? stream ?? null : null, barCount);
 
   return (
@@ -31,7 +30,7 @@ export function AudioWaveform({ isActive, stream, barCount = 5, className, barCl
         return (
           <div
             key={i}
-            className={cn('rounded-full', barClassName ?? 'bg-primary')}
+            className="rounded-full bg-primary"
             style={{
               width: '2px',
               height: `${height}%`,

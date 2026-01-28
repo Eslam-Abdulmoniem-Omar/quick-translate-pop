@@ -22,16 +22,7 @@ export function FloatingDock() {
   const { translate, isTranslating } = useTranslation({ sourceLanguage, targetLanguage });
 
   const handleTranslation = useCallback(async (text: string, context?: string) => {
-    let hasShown = false;
-    const handlePartial = (partial: TranslationResult) => {
-      if (!hasShown) {
-        setShowToast(true);
-        hasShown = true;
-      }
-      setCurrentTranslation({ text, context, result: partial });
-    };
-
-    const result = await translate(text, context, handlePartial);
+    const result = await translate(text, context);
     if (result) {
       setCurrentTranslation({ text, context, result });
       setShowToast(true);

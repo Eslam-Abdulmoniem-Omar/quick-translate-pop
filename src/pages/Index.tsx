@@ -28,26 +28,6 @@ const Index = () => {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  // Keep edge functions warm to reduce cold starts
-  useEffect(() => {
-    const url = import.meta.env.VITE_SUPABASE_URL;
-    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    if (!url || !key) return;
-
-    const ping = () => {
-      fetch(`${url}/functions/v1/ping`, {
-        method: 'GET',
-        headers: {
-          apikey: key,
-        },
-      }).catch(() => {});
-    };
-
-    ping();
-    const intervalId = window.setInterval(ping, 10 * 60 * 1000);
-    return () => window.clearInterval(intervalId);
-  }, []);
-
   // Warm up microphone permission on first user interaction
   useEffect(() => {
     const warmUpMic = () => {

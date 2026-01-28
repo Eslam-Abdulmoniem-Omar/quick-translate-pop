@@ -11,7 +11,6 @@ serve(async (req) => {
   }
 
   try {
-    // 1. Process Audio
     const formData = await req.formData();
     const audioFile = formData.get('audio') as File;
     
@@ -30,8 +29,7 @@ serve(async (req) => {
     const apiFormData = new FormData();
     apiFormData.append('file', audioFile);
     apiFormData.append('model', 'whisper-1');
-    apiFormData.append('prompt', 'Quick translation app. Technical terms, proper nouns, and natural speech.');
-    apiFormData.append('temperature', '0.2');
+    apiFormData.append('language', 'en');
 
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',

@@ -2,16 +2,14 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 
 interface UseVoiceInputOptions {
-  onRecordingEnd?: () => void;
   onTranscription: (text: string) => void;
-  onError?: () => void;
 }
 
 // Global warm stream - persists across hook instances
 let warmStream: MediaStream | null = null;
 let isWarmingUp = false;
 
-export function useVoiceInput({ onRecordingEnd, onTranscription, onError }: UseVoiceInputOptions) {
+export function useVoiceInput({ onTranscription }: UseVoiceInputOptions) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
@@ -20,8 +18,6 @@ export function useVoiceInput({ onRecordingEnd, onTranscription, onError }: UseV
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const recordingStartTimeRef = useRef<number>(0);
-  const hasSentForIntentRef = useRef(false);
-  const isTranscribingRef = useRef(false);
 
   const MIN_RECORDING_DURATION_MS = 500;
   // Warm up microphone on mount
@@ -38,7 +34,6 @@ export function useVoiceInput({ onRecordingEnd, onTranscription, onError }: UseV
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true,
           sampleRate: 16000,
         }
       });
@@ -56,7 +51,6 @@ export function useVoiceInput({ onRecordingEnd, onTranscription, onError }: UseV
   const startRecording = useCallback(async () => {
     // Show initializing state immediately
     setIsInitializing(true);
-    hasSentForIntentRef.current = false;
     
     try {
       let stream: MediaStream;
@@ -72,7 +66,6 @@ export function useVoiceInput({ onRecordingEnd, onTranscription, onError }: UseV
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
-            autoGainControl: true,
             sampleRate: 16000,
           }
         });
@@ -96,7 +89,7 @@ export function useVoiceInput({ onRecordingEnd, onTranscription, onError }: UseV
         }
       };
 
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         // Disable tracks but don't stop them (keep warm)
         stream.getTracks().forEach(track => {
           track.enabled = false;
@@ -105,16 +98,12 @@ export function useVoiceInput({ onRecordingEnd, onTranscription, onError }: UseV
         const audioBlob = new Blob(chunksRef.current, { type: mimeType });
         
         if (audioBlob.size < 5000) {
-          toast.error('Recording too short. Hold Ctrl+Shift longer.');
+          toast.error('Recording too short. Hold Alt+T longer.');
           setIsProcessing(false);
-          onError?.();
           return;
         }
 
-        // Process transcription in background without blocking
-        transcribeAudio(audioBlob).catch(error => {
-          console.error('Background transcription error:', error);
-        });
+        await transcribeAudio(audioBlob);
       };
 
       mediaRecorderRef.current = mediaRecorder;
@@ -140,57 +129,22 @@ export function useVoiceInput({ onRecordingEnd, onTranscription, onError }: UseV
         mediaRecorderRef.current.stop();
         setIsRecording(false);
         setIsTooShort(true);
-        toast.info('Hold Ctrl+Shift a bit longer', { duration: 1500 });
+        toast.info('Hold Alt+T a bit longer', { duration: 1500 });
         setTimeout(() => setIsTooShort(false), 1500);
-        onError?.();
         return;
       }
-      
-      if (typeof performance !== 'undefined') {
-        try {
-          performance.mark('recording-ended');
-          console.log('[Perf] mark: recording-ended');
-        } catch {
-          // Ignore performance errors
-        }
-      }
-      
-      onRecordingEnd?.();
       
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setActiveStream(null);
       setIsProcessing(true);
     }
-  }, [isRecording, onRecordingEnd]);
+  }, [isRecording]);
 
   const transcribeAudio = async (audioBlob: Blob) => {
-    if (isTranscribingRef.current) return;
-    isTranscribingRef.current = true;
-    
-    if (typeof performance !== 'undefined') {
-      try {
-        performance.mark('audio-processing-start');
-        console.log('[Perf] mark: audio-processing-start (popup should already be visible)');
-      } catch {
-        // Ignore performance errors
-      }
-    }
-    
     try {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
-
-      if (typeof performance !== 'undefined') {
-        try {
-          performance.mark('audio-upload-start');
-          performance.mark('whisper-request-start');
-          console.log('[Perf] mark: audio-upload-start');
-          console.log('[Perf] mark: whisper-request-start');
-        } catch {
-          // Ignore performance errors
-        }
-      }
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe`,
@@ -198,33 +152,11 @@ export function useVoiceInput({ onRecordingEnd, onTranscription, onError }: UseV
           method: 'POST',
           headers: {
             'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: formData,
         }
       );
-
-      if (typeof performance !== 'undefined') {
-        try {
-          performance.mark('audio-upload-end');
-          performance.mark('whisper-response-end');
-          console.log('[Perf] mark: audio-upload-end');
-          console.log('[Perf] mark: whisper-response-end');
-          performance.measure('upload audio', 'audio-upload-start', 'audio-upload-end');
-          performance.measure('whisper latency', 'whisper-request-start', 'whisper-response-end');
-          const uploadEntries = performance.getEntriesByName('upload audio');
-          const whisperEntries = performance.getEntriesByName('whisper latency');
-          const lastUpload = uploadEntries[uploadEntries.length - 1];
-          const lastWhisper = whisperEntries[whisperEntries.length - 1];
-          if (lastUpload) {
-            console.log(`[Perf] upload audio: ${lastUpload.duration.toFixed(1)}ms`);
-          }
-          if (lastWhisper) {
-            console.log(`[Perf] whisper latency: ${lastWhisper.duration.toFixed(1)}ms`);
-          }
-        } catch {
-          // Ignore performance errors
-        }
-      }
 
       if (!response.ok) {
         throw new Error(`Transcription failed: ${response.status}`);
@@ -237,37 +169,20 @@ export function useVoiceInput({ onRecordingEnd, onTranscription, onError }: UseV
       }
 
       const text = data.text?.trim() || '';
-      if (typeof performance !== 'undefined') {
-        try {
-          performance.mark('transcription-done');
-          console.log('[Perf] mark: transcription-done');
-        } catch {
-          // Ignore performance errors
-        }
-      }
       
       // Check if it's actual speech (not just audio events like [beeping], [clicking], etc.)
       const isAudioEventOnly = /^\[.*\]$/.test(text) || !text;
       
       if (text && !isAudioEventOnly) {
-        if (!hasSentForIntentRef.current) {
-          hasSentForIntentRef.current = true;
-          // Yield to event loop before triggering translation
-          queueMicrotask(() => {
-            onTranscription(text);
-          });
-        }
+        onTranscription(text);
       } else {
         toast.info("We couldn't hear you", { duration: 1500 });
-        onError?.();
       }
     } catch (error) {
       console.error('Transcription error:', error);
       toast.error('Failed to transcribe audio. Please try again.');
-      onError?.();
     } finally {
       setIsProcessing(false);
-      isTranscribingRef.current = false;
     }
   };
 
