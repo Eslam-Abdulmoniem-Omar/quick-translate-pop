@@ -17,18 +17,23 @@ interface TranslationToastProps {
 export function TranslationToast({
   result,
   onClose,
-  autoDismiss = 10000,
+  autoDismiss = 5000,
 }: TranslationToastProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    requestAnimationFrame(() => setIsVisible(true));
+    return () => {
+      window.electron?.setOverlayInteractive?.(false);
+    };
   }, []);
 
   useEffect(() => {
-    if (autoDismiss > 0 && !isPaused) {
+    // Only start auto-dismiss timer when translation has actual content
+    const hasContent = result.translation && result.translation.trim().length > 0;
+    
+    if (autoDismiss > 0 && !isPaused && hasContent) {
       timerRef.current = setTimeout(() => {
         setIsVisible(false);
         setTimeout(onClose, 200);
@@ -37,10 +42,11 @@ export function TranslationToast({
         if (timerRef.current) clearTimeout(timerRef.current);
       };
     }
-  }, [autoDismiss, onClose, isPaused]);
+  }, [autoDismiss, onClose, isPaused, result.translation]);
 
   const handleMouseEnter = () => {
     setIsPaused(true);
+    window.electron?.setOverlayInteractive?.(true);
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -49,9 +55,11 @@ export function TranslationToast({
 
   const handleMouseLeave = () => {
     setIsPaused(false);
+    window.electron?.setOverlayInteractive?.(false);
   };
 
   const handleClose = () => {
+    window.electron?.setOverlayInteractive?.(false);
     setIsVisible(false);
     setTimeout(onClose, 200);
   };
@@ -59,58 +67,72 @@ export function TranslationToast({
   return (
     <div
       className={cn(
-        'fixed bottom-6 right-4 z-50 max-w-sm',
-        'transition-all duration-200 ease-out',
-        isVisible 
-          ? 'translate-y-0 opacity-100' 
-          : 'translate-y-2 opacity-0'
+        'fixed bottom-24 right-4 z-[9999]',
+        'transition-all duration-300 ease-out pointer-events-none',
+        isVisible
+          ? 'translate-y-0 opacity-100 scale-100'
+          : 'translate-y-4 opacity-0 scale-95'
       )}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
-      <div className="glass-effect rounded-lg border border-border/30 shadow-lg p-4 space-y-3">
-        {/* Close button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleClose}
-          className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground"
-        >
-          <X className="h-3 w-3" />
-        </Button>
+      <div
+        className={cn(
+          'pointer-events-auto',
+          'bg-white rounded-xl',
+          'border border-[#DADCE0]',
+          'shadow-[0_4px_12px_rgba(0,0,0,0.15)]',
+          'overflow-hidden',
+          'max-w-[460px] w-[90vw]'
+        )}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Content Section */}
+        <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
+          {/* Header with original text */}
+          {result.originalPhrase && (
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-[#5F6368] mb-1">Original</p>
+                <p className="text-sm text-[#202124] leading-snug whitespace-pre-wrap break-words">
+                  "{result.originalPhrase}"
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleClose}
+                className="h-7 w-7 rounded-full hover:bg-[#F1F3F4] text-[#5F6368] hover:text-[#202124] shrink-0"
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
 
-        {/* Original phrase */}
-        {result.originalPhrase && (
-          <div className="pr-6">
-            <p className="text-xs text-muted-foreground mb-1">📖 العبارة</p>
-            <p className="text-sm font-medium text-foreground">
-              "{result.originalPhrase}"
+          {!result.originalPhrase && (
+            <div className="flex justify-end -mt-1 -mr-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleClose}
+                className="h-7 w-7 rounded-full hover:bg-[#F1F3F4] text-[#5F6368] hover:text-[#202124]"
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
+
+          {/* Translation */}
+          <div dir="rtl" className="text-right">
+            <p className="text-lg font-semibold text-[#202124] leading-relaxed whitespace-pre-wrap break-words">
+              {result.translation || (
+                <span className="text-[#5F6368] animate-pulse">מעבד...</span>
+              )}
             </p>
           </div>
-        )}
-
-        {/* Divider */}
-        {result.originalPhrase && (
-          <div className="border-t border-border/30" />
-        )}
-
-        {/* Meaning */}
-        <div dir="rtl" className="text-right">
-          <p className="text-xs text-muted-foreground mb-1">🔤 المعنى</p>
-          <p className="text-base font-medium text-foreground leading-snug">
-            {result.translation}
-          </p>
         </div>
 
-        {/* Explanation */}
-        {result.explanation && (
-          <div dir="rtl" className="text-right">
-            <p className="text-xs text-muted-foreground mb-1">📝 الشرح</p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {result.explanation}
-            </p>
-          </div>
-        )}
+        {/* Accent divider */}
+        <div className="h-0.5 bg-[#1A73E8]" />
       </div>
     </div>
   );
