@@ -1,3 +1,5 @@
+/// <reference types="chrome" />
+
 export {};
 
 declare global {
@@ -9,5 +11,7 @@ declare global {
       setOverlayIdle: (idle: boolean) => void;
       setOverlayInteractive: (interactive: boolean) => void;
     };
+    // Extension injection flag
+    __translingual_injected?: boolean;
   }
 }

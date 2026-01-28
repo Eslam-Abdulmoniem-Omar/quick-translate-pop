@@ -23,11 +23,7 @@ export function TranslationToast({
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    return () => {
-      window.electron?.setOverlayInteractive?.(false);
-    };
-  }, []);
+  // Cleanup effect (Electron code removed)
 
   useEffect(() => {
     // Only start auto-dismiss timer when translation has actual content
@@ -46,7 +42,6 @@ export function TranslationToast({
 
   const handleMouseEnter = () => {
     setIsPaused(true);
-    window.electron?.setOverlayInteractive?.(true);
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -55,11 +50,9 @@ export function TranslationToast({
 
   const handleMouseLeave = () => {
     setIsPaused(false);
-    window.electron?.setOverlayInteractive?.(false);
   };
 
   const handleClose = () => {
-    window.electron?.setOverlayInteractive?.(false);
     setIsVisible(false);
     setTimeout(onClose, 200);
   };
